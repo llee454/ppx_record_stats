@@ -9,22 +9,37 @@ Example
 For example, given the record type, `t`, the following annotations tell the library that that `t`s `a` field is a string that should equal "true" or "false"; and that its `b` field is an int that should be greater than 0.
 
 ```ocaml
-type t = {
-  a: string option;
+type example = {
+  a: int; [@stats [| Int_ranged { spec = { low = None; high = Some 100 }; transform = Option.some } |]]
+  b: string option;
       [@stats
         [|
-          Str_enum {
-            spec = { valid_values = String.Set.of_list [ "true"; "false" ] };
-            transform = Fn.id;
-          }
-        |]
-      ]
-  b: int;
+          Str_enum { spec = { valid_values = String.Set.empty }; transform = Fn.id };
+          Nullable { spec = (); transform = Option.map ~f:(Fn.const ()) };
+        |]]
+  c: Date.t;
       [@stats
         [|
-          Int_ranged { spec = { low = Some 0; high = None }; transform = Option.some }
-        |]
-      ]
+          Date_ranged
+            {
+              spec =
+                {
+                  start_date = Some (Date.create_exn ~y:2022 ~m:Month.jan ~d:10);
+                  end_date = Some (Date.create_exn ~y:2022 ~m:Month.sep ~d:20);
+                  granularity = Weeks;
+                };
+              transform = Option.some;
+            };
+        |]]
+  d: string;
+      [@stats
+        [|
+          Formatted
+            {
+              spec = { format = Re.Perl.compile_pat {re|numerical [[:digit:]]{5}|re} };
+              transform = Option.some;
+            };
+        |]]
 }
 [@@deriving fields, record_stats]
 ```
@@ -32,7 +47,12 @@ type t = {
 Given a list of `t` values, `xs`, we can generate a statistics report for `xs` by simply calling `Stats.report xs`. For example:
 
 ```ocaml
-let xs = [ { a = Some "true"; b = 1 }; { a = Some "false"; b = 0 } ]
+let xs =
+  [
+    { a = 0; b = Some "hello"; c = Date.create_exn ~y:2022 ~m:Month.jul ~d:5; d = "numerical 12345" };
+    { a = 1; b = Some "world"; c = Date.create_exn ~y:2022 ~m:Month.aug ~d:15; d = "numerical 67890" };
+    { a = 2; b = None; c = Date.create_exn ~y:2020 ~m:Month.sep ~d:30; d = "number" };
+  ]
 
 let () =
   Stats.report xs
@@ -43,17 +63,59 @@ let () =
 
 The resulting report will list information about the values of the fields in `xs`:
 
-```lisp
-(((field_name a_stats)
-  (reports
-   ((Str_enum
-     ((num_values 2) (distrib ((false 1) (true 1))) (num_invalid_values 0)
-      (prop_invalid_values 0))))))
- ((field_name b_stats)
-  (reports
-   ((Int_ranged
-     ((num_values 2) (num_invalid_values 0) (prop_invalid_values 0) (min (0))
-      (max (1))))))))
+```json
+{
+  "a_rep": [
+    [
+      "Int_ranged_rep",
+      {
+        "num_values": 3,
+        "num_invalid_values": 0,
+        "prop_invalid_values": 0.0,
+        "min": 0,
+        "max": 2
+      }
+    ]
+  ],
+  "b_rep": [
+    [
+      "Str_enum_rep",
+      {
+        "num_values": 2,
+        "distrib": [ [ "world", 1 ], [ "hello", 1 ] ],
+        "num_invalid_values": 2,
+        "prop_invalid_values": 1.0
+      }
+    ],
+    [
+      "Nullable_rep",
+      { "num_values": 3, "num_null": 1, "prop_null": 0.3333333333333333 }
+    ]
+  ],
+  "c_rep": [
+    [
+      "Date_ranged_rep",
+      {
+        "num_values": 3,
+        "num_invalid_values": 1,
+        "prop_invalid_values": 0.3333333333333333,
+        "earliest": "20200930",
+        "latest": "20220815",
+        "distrib": [ [ 31, 1 ], [ -66, 1 ], [ 25, 1 ] ]
+      }
+    ]
+  ],
+  "d_rep": [
+    [
+      "Formatted_rep",
+      {
+        "num_values": 3,
+        "num_invalid_values": 1,
+        "prop_invalid_values": 0.3333333333333333
+      }
+    ]
+  ]
+}
 ```
 
 Usage in Other Projects
