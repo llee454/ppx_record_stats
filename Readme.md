@@ -6,7 +6,7 @@ The Record Stats PPX is designed to make it easy to statistically analyze datase
 Example
 -------
 
-For example, given the record type, `example`, the following annotations tell the library that that `example`s `a` field is a string that should equal is an int that should be less than (or equal to) 100; `b` is an optional string; `c` is a date that should be a date that should fall within the range 01/10/2022 and 09/20/2022.
+For example, given the record type, `example`, the following annotations tell the library that that `example`s `a` field is an int that should be less than (or equal to) 100; `b` is an optional string; `c` is a date that should be a date that should fall within the range 01/10/2022 and 09/20/2022.
 
 ```ocaml
 type example = {
