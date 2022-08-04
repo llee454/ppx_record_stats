@@ -6,12 +6,12 @@ type ('spec, 'transform) field_spec_params = {
 }
 
 type 'a field_spec =
-  | Date_ranged of (Date_ranged.spec, 'a -> Date.t option) field_spec_params
-  | Formatted   of (Formatted.spec, 'a -> string option) field_spec_params
-  | Int_ranged  of (Int_ranged.spec, 'a -> int option) field_spec_params
-  | Linked      of ('a Linked.spec, 'a -> 'a option) field_spec_params
+  | Date_ranged of (Date_ranged.spec, 'a -> Date.t list) field_spec_params
+  | Formatted   of (Formatted.spec, 'a -> string list) field_spec_params
+  | Int_ranged  of (Int_ranged.spec, 'a -> int list) field_spec_params
+  | Linked      of ('a Linked.spec, 'a -> 'a list) field_spec_params
   | Nullable    of (Nullable.spec, 'a -> unit option) field_spec_params
-  | Str_enum    of (Str_enum.spec, 'a -> string option) field_spec_params
+  | Str_enum    of (Str_enum.spec, 'a -> string list) field_spec_params
 
 type field_report =
   | Date_ranged_rep of Date_ranged.report
@@ -46,7 +46,7 @@ let field_init : type a. a field_spec -> (module Field_stats with type t = a) = 
     let stats = ref (Date_ranged.stats_init ())
 
     let update field_value =
-      transform field_value |> Option.iter ~f:(fun x -> stats := Date_ranged.stats_update spec x !stats)
+      transform field_value |> List.iter ~f:(fun x -> stats := Date_ranged.stats_update spec x !stats)
 
     let report () = Date_ranged_rep (Date_ranged.report spec !stats)
   end
@@ -60,7 +60,7 @@ let field_init : type a. a field_spec -> (module Field_stats with type t = a) = 
     let stats = ref (Formatted.stats_init ())
 
     let update field_value =
-      transform field_value |> Option.iter ~f:(fun x -> stats := Formatted.stats_update spec x !stats)
+      transform field_value |> List.iter ~f:(fun x -> stats := Formatted.stats_update spec x !stats)
 
     let report () = Formatted_rep (Formatted.report spec !stats)
   end
@@ -74,7 +74,7 @@ let field_init : type a. a field_spec -> (module Field_stats with type t = a) = 
     let stats = ref (Int_ranged.stats_init ())
 
     let update field_value =
-      transform field_value |> Option.iter ~f:(fun x -> stats := Int_ranged.stats_update spec x !stats)
+      transform field_value |> List.iter ~f:(fun x -> stats := Int_ranged.stats_update spec x !stats)
 
     let report () = Int_ranged_rep (Int_ranged.report spec !stats)
   end
@@ -88,7 +88,7 @@ let field_init : type a. a field_spec -> (module Field_stats with type t = a) = 
     let stats = ref (Linked.stats_init ())
 
     let update field_value =
-      transform field_value |> Option.iter ~f:(fun x -> stats := Linked.stats_update spec x !stats)
+      transform field_value |> List.iter ~f:(fun x -> stats := Linked.stats_update spec x !stats)
 
     let report () = Linked_rep (Linked.report spec !stats)
   end
@@ -115,7 +115,7 @@ let field_init : type a. a field_spec -> (module Field_stats with type t = a) = 
     let stats = ref (Str_enum.stats_init ())
 
     let update field_value =
-      transform field_value |> Option.iter ~f:(fun x -> stats := Str_enum.stats_update spec x !stats)
+      transform field_value |> List.iter ~f:(fun x -> stats := Str_enum.stats_update spec x !stats)
 
     let report () = Str_enum_rep (Str_enum.report spec !stats)
   end
