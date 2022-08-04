@@ -6,7 +6,7 @@ The Record Stats PPX is designed to make it easy to statistically analyze datase
 Example
 -------
 
-For example, given the record type, `t`, the following annotations tell the library that that `t`s `a` field is a string that should equal "true" or "false"; and that its `b` field is an int that should be greater than 0.
+For example, given the record type, `example`, the following annotations tell the library that that `example`s `a` field is a string that should equal is an int that should be less than (or equal to) 100; `b` is an optional string; `c` is a date that should be a date that should fall within the range 01/10/2022 and 09/20/2022.
 
 ```ocaml
 type example = {
@@ -118,25 +118,6 @@ The resulting report will list information about the values of the fields in `xs
 }
 ```
 
-Usage in Other Projects
------------------------
-
-To use this PPX library in another project include the `ppx_record_stats` library in your Dune file's preprocess section. For example:
-
-```
-(executable
- (name main)
- (libraries
-  core_kernel
-  )
- (preprocess
-  (pps ppx_jane ppx_record_stats))
-  (modes exe)
-)
-```
-
-You must also update your OPAM package configuration file. Add the following line to your "pin-depends" section: `["ppx_record_stats.0.1.0" "git+https://github.com/llee454/ppx_record_stats.git#main"]`. Add the following to your "depends" section: `  "ppx_record_stats" { = "0.1.0"}`.
-
 Usage
 -----
 
@@ -174,6 +155,25 @@ This library will create a module named `Stats` in the same context as the type 
 
 To generate a report, call `Stats.report xs` where `xs` denotes the dataset and has type `xs : t list`.
 
+Usage in Other Projects
+-----------------------
+
+To use this PPX library in another project include the `ppx_record_stats` library in your Dune file's preprocess section. For example:
+
+```
+(executable
+ (name main)
+ (libraries
+  core_kernel
+  )
+ (preprocess
+  (pps ppx_jane ppx_record_stats))
+  (modes exe)
+)
+```
+
+You must also update your OPAM package configuration file. Add the following line to your "pin-depends" section: `["ppx_record_stats.0.1.0" "git+https://github.com/llee454/ppx_record_stats.git#main"]`. Add the following to your "depends" section: `  "ppx_record_stats" { = "0.1.0"}`.
+
 
 Initializing the Build Environment
 ----------------------------------
@@ -187,6 +187,7 @@ opam switch create . ocaml-variants.4.10.0+flambda --no-install
 opam update
 opam install --deps-only .
 dune build
+```
 
 Known Bugs
 ----------
