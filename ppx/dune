@@ -1,0 +1,14 @@
+(library
+  (public_name ppx_record_stats)
+  (name ppx_record_stats)
+  (kind ppx_deriver)
+  (libraries
+    core_kernel
+    lwt
+    lwt.unix
+    ppxlib
+    runtime
+  )
+  (preprocess (pps ppxlib.metaquot ppx_jane ppx_variants_conv))
+  (ppx_runtime_libraries runtime)
+)

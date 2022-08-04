@@ -1,0 +1,16 @@
+(library
+  (name runtime)
+  (public_name ppx_record_stats.runtime)
+  (libraries
+    core
+    lwt
+    lwt.unix
+    re
+  )
+  (preprocess (pps
+    ppx_jane
+    ppx_deriving_yojson
+    lwt_ppx
+  ))
+)
+

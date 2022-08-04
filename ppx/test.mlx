@@ -1,0 +1,44 @@
+open! Core_kernel
+open Runtime
+
+type example = {
+  a: int;
+      [@stats
+        [
+          { sort = Int_ranged; spec = { low = None; high = Some 100 }; transform = Option.some };
+          { sort = Nullable; spec = (); transform = Fn.id };
+        ]]
+  b: string;
+}
+[@@deriving fields]
+
+module Stats = struct
+  type specs = {
+    a_specs: int field_spec list;
+    b_specs: string field_spec list;
+  }
+  [@@deriving fields]
+
+  type stats = {
+    a_stats: (module Field_stats with type t = int) list;
+    b_stats: (module Field_stats with type t = string) list;
+  }
+  [@@deriving fields]
+
+  type report = {
+    a_rep: field_report list;
+    b_rep: field_report list;
+  }
+  [@@deriving fields]
+
+  let stats_init (spec : specs) =
+    Fields_of_stats.create
+      ~a_stats:(a_specs spec |> List.map ~f:field_init)
+      ~b_stats:(b_specs spec |> List.map ~f:field_init)
+
+  let report (specs : specs) (xs : example list) =
+    let stats = stats_init specs in
+    List.iter xs ~f:(fun x ->
+        Fields_of_stats.iter ~a_stats:(stats_update stats (a x)) ~b_stats:(stats_update stats (b x)));
+    Fields_of_report.create ~a_rep:(a_stats stats |> stats_report) ~b_rep:(b_stats stats |> stats_report)
+end

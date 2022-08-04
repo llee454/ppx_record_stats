@@ -1,0 +1,28 @@
+opam-version: "2.0"
+maintainer: "Larry Darryl Lee Jr."
+authors: [
+  "Larry Darryl Lee Jr."
+]
+synopsis: "PPX for calculating statistics for record field values"
+description: """
+Defines a PPX that makes is simple to calculate statistics for record field values.
+"""
+license: "GPL-3.0-or-later"
+tags: []
+homepage: "https://github.com/llee454/ppx_profile"
+doc: "https://github.com/llee454/ppx_profile"
+bug-reports: "https://github.com/llee454/ppx_profile/issues"
+depends: [
+  "ocaml"
+  "dune"
+  "ocaml-lsp-server"
+  "ocamlformat"
+  "ppx_jane"
+  "core_kernel"
+  "core"
+  "lwt"
+  "lwt_ppx"
+  "yojson"
+  "ppx_deriving_yojson"
+]
+build: ["dune" "build" "-p" name "-j" jobs]
