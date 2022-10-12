@@ -3,10 +3,9 @@
   fields that can only take a specific set of string values.
 *)
 
-open! Core_kernel
+open! Core
 
 type spec = { valid_values: String.Set.t } [@@unboxed]
-
 type stats = { distrib: int String.Table.t } [@@unboxed] [@@deriving fields]
 
 let stats_init () = { distrib = String.Table.create () }
@@ -16,7 +15,8 @@ let stats_update (_ : spec) x stats =
   Fields_of_stats.map ~distrib:(fun field ->
       let distrib = Field.get field stats in
       String.Table.incr distrib x;
-      distrib)
+      distrib
+  )
 
 type report = {
   num_values: int;
@@ -40,6 +40,7 @@ let report { valid_values } ({ distrib } : stats) : report =
           num_values = num_values + data;
           num_invalid_values =
             (if String.Set.mem valid_values key then num_invalid_values else num_invalid_values + data);
-        })
+        }
+    )
   in
   { num_values; distrib; num_invalid_values; prop_invalid_values = num_invalid_values // num_values }

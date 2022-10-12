@@ -1,4 +1,4 @@
-open! Core_kernel
+open! Core
 
 type ('spec, 'transform) field_spec_params = {
   spec: 'spec;
@@ -40,7 +40,6 @@ let field_init : type a. a field_spec -> (module Field_stats with type t = a) = 
 | Date_ranged { spec; transform } ->
   ( module struct
     type t = a
-
     type stats_t = Date_ranged.stats
 
     let stats = ref (Date_ranged.stats_init ())
@@ -54,7 +53,6 @@ let field_init : type a. a field_spec -> (module Field_stats with type t = a) = 
 | Formatted { spec; transform } ->
   ( module struct
     type t = a
-
     type stats_t = Formatted.stats
 
     let stats = ref (Formatted.stats_init ())
@@ -68,7 +66,6 @@ let field_init : type a. a field_spec -> (module Field_stats with type t = a) = 
 | Int_ranged { spec; transform } ->
   ( module struct
     type t = a
-
     type stats_t = Int_ranged.stats
 
     let stats = ref (Int_ranged.stats_init ())
@@ -82,7 +79,6 @@ let field_init : type a. a field_spec -> (module Field_stats with type t = a) = 
 | Linked { spec; transform } ->
   ( module struct
     type t = a
-
     type stats_t = Linked.stats
 
     let stats = ref (Linked.stats_init ())
@@ -96,20 +92,16 @@ let field_init : type a. a field_spec -> (module Field_stats with type t = a) = 
 | Nullable { spec; transform } ->
   ( module struct
     type t = a
-
     type stats_t = Nullable.stats
 
     let stats = ref (Nullable.stats_init ())
-
     let update field_value = stats := Nullable.stats_update spec (transform field_value) !stats
-
     let report () = Nullable_rep (Nullable.report spec !stats)
   end
   )
 | Str_enum { spec; transform } ->
   ( module struct
     type t = a
-
     type stats_t = Str_enum.stats
 
     let stats = ref (Str_enum.stats_init ())
@@ -131,9 +123,11 @@ let stats_update :
   Field.get field rec_stats
   |> List.iter ~f:(fun stats ->
          let module Stats : Field_stats with type t = a = (val stats) in
-         Stats.update field_value)
+         Stats.update field_value
+     )
 
 let stats_report : type a. (module Field_stats with type t = a) list -> field_report list =
   List.map ~f:(fun (field_stats : (module Field_stats with type t = a)) ->
       let module M : Field_stats = (val field_stats) in
-      M.report ())
+      M.report ()
+  )

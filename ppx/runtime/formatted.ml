@@ -3,7 +3,7 @@
   that contain string values that must conform to a specific format.
 *)
 
-open! Core_kernel
+open! Core
 
 type spec = { format: Re.re } [@@unboxed]
 

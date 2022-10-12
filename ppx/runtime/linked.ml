@@ -4,7 +4,7 @@
   datasets.
 *)
 
-open! Core_kernel
+open! Core
 
 type 'a spec = { get_num_matches: 'a -> int } [@@unboxed]
 

@@ -3,7 +3,7 @@
   can store null values.
 *)
 
-open! Core_kernel
+open! Core
 
 type spec = unit
 

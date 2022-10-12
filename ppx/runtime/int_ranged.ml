@@ -3,7 +3,7 @@
   that store bounded integral values.
 *)
 
-open! Core_kernel
+open! Core
 
 type spec = {
   low: int option;

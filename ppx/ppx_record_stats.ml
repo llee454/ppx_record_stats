@@ -1,4 +1,4 @@
-open! Core_kernel
+open! Core
 open! Ppxlib
 open Ast_builder.Default
 
@@ -19,7 +19,8 @@ let parse_attrib =
 let parse_label_decl (ld : label_declaration) =
   Option.(
     Attribute.get parse_attrib ld >>| fun specs ->
-    { field_name = ld.pld_name.txt; field_type = ld.pld_type; specs })
+    { field_name = ld.pld_name.txt; field_type = ld.pld_type; specs }
+  )
 
 let create_rec_decl ~loc txt label_decls =
   type_declaration ~loc ~name:{ txt; loc } ~params:[] ~cstrs:[] ~kind:(Ptype_record label_decls)
@@ -44,7 +45,8 @@ let create_stats_decl ~loc specs =
       List.map specs ~f:(fun { field_name; field_type; _ } ->
           label_declaration ~loc
             ~name:{ txt = sprintf "%s_stats" field_name; loc }
-            ~mutable_:Immutable ~type_:[%type: (module Field_stats with type t = [%t field_type]) list])
+            ~mutable_:Immutable ~type_:[%type: (module Field_stats with type t = [%t field_type]) list]
+      )
       (* create record declaration and add deriving fields attribute *)
       |> create_rec_decl ~loc "stats"
       |> add_deriving_fields_attrib ~loc;
@@ -57,7 +59,8 @@ let create_report_decl ~loc specs =
       List.map specs ~f:(fun { field_name; _ } ->
           label_declaration ~loc
             ~name:{ txt = sprintf "%s_rep" field_name; loc }
-            ~mutable_:Immutable ~type_:[%type: field_report list])
+            ~mutable_:Immutable ~type_:[%type: field_report list]
+      )
       (* create record declaration and add deriving fields attribute *)
       |> create_rec_decl ~loc "report"
       |> add_deriving_fields_json_attrib ~loc;
@@ -75,7 +78,8 @@ let create_stats_init_def ~loc specs =
   let args =
     List.map specs ~f:(fun { field_name; specs; _ } ->
         ( Labelled (sprintf "%s_stats" field_name),
-          [%expr Array.map ~f:field_init [%e specs] |> Array.to_list] ))
+          [%expr Array.map ~f:field_init [%e specs] |> Array.to_list] )
+    )
   in
   let fn = pexp_apply ~loc [%expr Fields_of_stats.create] args in
   [%stri let stats_init () = [%e fn]]
@@ -84,12 +88,14 @@ let create_report_def ~loc specs =
   let update_args =
     List.map specs ~f:(fun { field_name; _ } ->
         let fn = create_fn_ident ~loc field_name in
-        Labelled (sprintf "%s_stats" field_name), [%expr stats_update stats ([%e fn] x)])
+        Labelled (sprintf "%s_stats" field_name), [%expr stats_update stats ([%e fn] x)]
+    )
   in
   let report_args =
     List.map specs ~f:(fun { field_name; _ } ->
         let fn = create_fn_ident ~loc (sprintf "%s_stats" field_name) in
-        Labelled (sprintf "%s_rep" field_name), [%expr [%e fn] stats |> stats_report])
+        Labelled (sprintf "%s_rep" field_name), [%expr [%e fn] stats |> stats_report]
+    )
   in
   let update_fn = pexp_apply ~loc [%expr Fields_of_stats.iter] update_args in
   let report_fn = pexp_apply ~loc [%expr Fields_of_report.create] report_args in
@@ -122,7 +128,8 @@ let create_stats_mod ~loc items =
                pmod_desc = Pmod_structure ([%stri include Runtime] :: items);
                pmod_loc = loc;
                pmod_attributes = [];
-             });
+             }
+        );
     pstr_loc = loc;
   }
 
@@ -131,9 +138,7 @@ let generate_impl ~ctxt (_rec_flag, type_declarations) =
   [ List.concat_map type_declarations ~f:(expand_type_decl ~loc) |> create_stats_mod ~loc ]
 
 let generate_intf ~ctxt:_ (_rec_flag, _type_declarations) : signature_item list = []
-
 let impl_generator = Deriving.Generator.V2.make_noarg generate_impl
-
 let intf_generator = Deriving.Generator.V2.make_noarg generate_intf
 
 let ppx_validation =

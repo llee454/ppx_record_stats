@@ -3,7 +3,7 @@
   store date values that should fall within a specified range.
 *)
 
-open! Core_kernel
+open! Core
 
 type granularity =
   | Weeks
@@ -41,8 +41,7 @@ let stats_update { start_date; end_date; granularity = _ } x
       );
     earliest =
       Some (Option.value_map earliest ~default:x ~f:(fun curr -> if Date.(x < curr) then x else curr));
-    latest =
-      Some (Option.value_map latest ~default:x ~f:(fun curr -> if Date.(x > curr) then x else curr));
+    latest = Some (Option.value_map latest ~default:x ~f:(fun curr -> if Date.(x > curr) then x else curr));
     dates = x :: dates;
   }
 
@@ -74,7 +73,9 @@ let report ({ start_date; end_date = _; granularity } : spec)
                 (12 * (Date.year x - Date.year low))
                 + (Month.to_int (Date.month x) - Month.to_int (Date.month low))
               | Years n -> (Date.year x - Date.year low) / n);
-            acc))
+            acc
+        )
+    )
   in
   {
     num_values;
